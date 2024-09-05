@@ -7,53 +7,7 @@
     <title>Aula 1 - Lunedì</title>
   </head>
   <body>
-    <div class="container">
-      <div class="post-header">
-        <h1 class="title">My 2024 MacBook setup for Software Development</h1>
-        <div class="subtitle">
-          Here's an insight into my setup, workflow and tools to build software
-        </div>
-        <div class="author-card">
-          <div class="avatar">
-            <img
-              src="assets/images/profile-picture.jpg"
-              height="44px"
-              width="44px"
-            />
-          </div>
-          <div class="column">
-            <div class="row">
-              <div>Anthony Gordon</div>
-              <div>·</div>
-              <div class="follow-button">Follow</div>
-            </div>
-            <div class="row secondary">
-              <div>5 min read</div>
-              <div>·</div>
-              <div>Jun 21, 2024</div>
-            </div>
-          </div>
-        </div>
-        <div class="actions">
-          <div class="claps">
-            <div class="claps-button" onclick="add()">
-              <img
-                src="assets/icons/hands-clapping-thin.svg"
-                height="24px"
-                width="24px"
-              />
-            </div>
-            <div id="claps-counter" class="claps-counter">0</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div id="app"></div>
   </body>
-  <script type="text/javascript">
-    let count = 0;
-    function add() {
-      count = count + 1;
-      document.getElementById("claps-counter").innerHTML = count;
-    }
-  </script>
+  <script src="index.js"></script>
 </html>
