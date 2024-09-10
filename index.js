@@ -30,12 +30,44 @@ const data = [
   },
 ];
 
-function Post(props) {
+let eventHandlers = [];
+
+const hooks = [];
+let hookPointer = 0;
+
+function useState(initialValue) {
+  const currentIndex = hookPointer;
+  if (!hooks[currentIndex]) hooks[currentIndex] = initialValue;
+  const state = hooks[currentIndex];
+  const setState = (_newState) => {
+    let newState;
+    if (typeof _newState === "function") {
+      newState = _newState(state);
+    } else {
+      newState = _newState;
+    }
+
+    hooks[currentIndex] = newState;
+    render();
+  };
+  hookPointer++;
+  return [state, setState];
+}
+
+function Post({ post, addClap }) {
+  const handleClick = () => addClap(post.id);
+
+  eventHandlers.push({
+    elementId: `claps-button-${post.id}`,
+    type: "click",
+    handler: handleClick,
+  });
+
   return `
       <div class="post-header">
-          <h1 class="title">${props.title}</h1>
+          <h1 class="title">${post.title}</h1>
           <div class="subtitle">
-            ${props.subtitle}
+            ${post.subtitle}
           </div>
           <div class="author-card">
             <div class="avatar">
@@ -47,27 +79,27 @@ function Post(props) {
             </div>
             <div class="column">
               <div class="row">
-                <div>${props.author}</div>
+                <div>${post.author}</div>
                 <div>·</div>
                 <div class="follow-button">Follow</div>
               </div>
               <div class="row secondary">
-                <div>${props.readingTime}</div>
+                <div>${post.readingTime}</div>
                 <div>·</div>
-                <div>${props.date}</div>
+                <div>${post.date}</div>
               </div>
             </div>
           </div>
           <div class="actions">
             <div class="claps">
-              <div id="claps-button" class="claps-button" onclick="App.state.addClap(${props.id})">
+              <div id="claps-button-${post.id}" class="claps-button">
                 <img
                   src="assets/icons/hands-clapping-thin.svg"
                   height="24px"
                   width="24px"
                 />
               </div>
-              <div id="claps-counter" class="claps-counter">${props.claps}</div>
+              <div id="claps-counter" class="claps-counter">${post.claps}</div>
             </div>
           </div>
       </div>
@@ -75,31 +107,32 @@ function Post(props) {
 }
 
 function App() {
-  if (!App.state.posts) {
-    App.state.setPosts(data);
-  }
+  const [state, setState] = useState(data);
+
+  const addClap = (id) => {
+    setState((prevState) => {
+      const newState = [...prevState];
+      const index = newState.findIndex((item) => item.id === id);
+      const post = newState[index];
+      newState[index] = { ...post, claps: post.claps + 1 };
+      return newState;
+    });
+  };
 
   return `
     <div class="container">
-      ${App.state.posts?.map((props) => Post(props)).join("")}
+      ${state.map((post) => Post({ post, addClap })).join("")}
     </div>
   `;
 }
 
-App.state = {
-  posts: undefined,
-  setPosts: (posts) => {
-    App.state.posts = posts;
-  },
-  addClap: (id) => {
-    const post = App.state.posts.find((post) => post.id === id);
-    post.claps = post.claps + 1;
-    render();
-  },
-};
-
 function render() {
+  hookPointer = 0;
+  eventHandlers = [];
   document.getElementById("app").innerHTML = App();
+  eventHandlers.forEach(({ elementId, type, handler }) => {
+    document.getElementById(elementId).addEventListener(type, handler);
+  });
 }
 
 render();
