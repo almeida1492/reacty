@@ -30,34 +30,10 @@ const data = [
   },
 ];
 
-let eventHandlers = [];
-
-const hooks = [];
-let hookPointer = 0;
-
-function useState(initialValue) {
-  const currentIndex = hookPointer;
-  if (!hooks[currentIndex]) hooks[currentIndex] = initialValue;
-  const state = hooks[currentIndex];
-  const setState = (_newState) => {
-    let newState;
-    if (typeof _newState === "function") {
-      newState = _newState(state);
-    } else {
-      newState = _newState;
-    }
-
-    hooks[currentIndex] = newState;
-    render();
-  };
-  hookPointer++;
-  return [state, setState];
-}
-
 function Post({ post, addClap }) {
   const handleClick = () => addClap(post.id);
 
-  eventHandlers.push({
+  root.registerEventHandler({
     elementId: `claps-button-${post.id}`,
     type: "click",
     handler: handleClick,
@@ -107,7 +83,7 @@ function Post({ post, addClap }) {
 }
 
 function App() {
-  const [state, setState] = useState(data);
+  const [state, setState] = root.useState(data);
 
   const addClap = (id) => {
     setState((prevState) => {
@@ -126,13 +102,49 @@ function App() {
   `;
 }
 
-function render() {
-  hookPointer = 0;
-  eventHandlers = [];
-  document.getElementById("app").innerHTML = App();
-  eventHandlers.forEach(({ elementId, type, handler }) => {
-    document.getElementById(elementId).addEventListener(type, handler);
-  });
+function createRoot(container) {
+  const rootContainer = container;
+  let rootNode;
+  let eventHandlers = [];
+  const hooks = [];
+  let hookPointer = 0;
+
+  function useState(initialValue) {
+    const currentIndex = hookPointer;
+    if (!hooks[currentIndex]) hooks[currentIndex] = initialValue;
+    const state = hooks[currentIndex];
+    const setState = (_newState) => {
+      let newState;
+      if (typeof _newState === "function") {
+        newState = _newState(state);
+      } else {
+        newState = _newState;
+      }
+
+      hooks[currentIndex] = newState;
+      render();
+    };
+    hookPointer++;
+    return [state, setState];
+  }
+
+  function registerEventHandler(handler) {
+    eventHandlers.push(handler);
+  }
+
+  function render(node) {
+    eventHandlers = [];
+    hookPointer = 0;
+    if (!rootNode && node) rootNode = node;
+    rootContainer.innerHTML = rootNode?.();
+    eventHandlers.forEach(({ elementId, type, handler }) => {
+      document.getElementById(elementId).addEventListener(type, handler);
+    });
+  }
+
+  return { render, useState, registerEventHandler };
 }
 
-render();
+const root = createRoot(document.getElementById("app"));
+
+root.render(App);
